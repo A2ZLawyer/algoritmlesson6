@@ -1,0 +1,212 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace algoritmlesson67
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            /* Задаем Граф
+                2
+                 \
+              1---5---9
+              |   |   |
+              13--7--11
+            */
+            var g = new Graph();
+
+            g.AddEdge(2, 5);
+            g.AddEdge(1, 5);
+            g.AddEdge(1, 13);
+            g.AddEdge(5, 2);
+            g.AddEdge(5, 1);
+            g.AddEdge(5, 9);
+            g.AddEdge(5, 7);
+            g.AddEdge(9, 11);
+            g.AddEdge(11, 9);
+            g.AddEdge(11, 7);
+            g.AddEdge(7, 11);
+            g.AddEdge(7, 5);
+            g.AddEdge(7, 13);
+            g.AddEdge(13, 7);
+            g.AddEdge(13, 1);
+            Console.WriteLine("Задан граф:");
+            Console.WriteLine("                  2");
+            Console.WriteLine("                  | ");
+            Console.WriteLine("              1---5---9");
+            Console.WriteLine("              |   |   |");
+            Console.WriteLine("              13--7--11");
+            Console.WriteLine("Введите узел с которого начинаем обход");
+            int StartNode = int.Parse(Console.ReadLine());
+            Console.WriteLine("Введите искомый узел");
+            int SearchNode = int.Parse(Console.ReadLine());
+
+            Console.WriteLine("Обход в ширину, начиная с " + StartNode);
+            g.BFS(StartNode);
+            Console.WriteLine();
+            g.BFSFindNode(StartNode, SearchNode);
+            Console.WriteLine();
+
+            Console.WriteLine("Обход в глубину, начиная с " + StartNode);
+            g.DFSiter(StartNode);
+
+            Console.WriteLine("Обход в глубину, начиная с " + StartNode + " c рекурсией");
+            g.DFSRec(StartNode);
+        }
+        public class Graph
+        {
+            public Graph()
+            {
+                Adj = new Dictionary<int, HashSet<int>>();
+            }
+
+            public Dictionary<int, HashSet<int>> Adj { get; private set; }
+
+            public void AddEdge(int source, int target)
+            {
+                if (Adj.ContainsKey(source))
+                {
+                    try
+                    {
+                        Adj[source].Add(target);
+                    }
+                    catch
+                    {
+                        Console.WriteLine("Такое значение уже существует: " + source + " до " + target);
+                    }
+                }
+                else
+                {
+                    var hs = new HashSet<int>();
+                    hs.Add(target);
+                    Adj.Add(source, hs);
+                }
+            }
+
+            public void BFS(int vertex)
+            {
+                var visited = new HashSet<int>();
+                // Отмечаем узел, как посещенную
+                visited.Add(vertex);
+                // Очередь для BFS
+                var q = new Queue<int>();
+                // добавляем узел в очередь
+                q.Enqueue(vertex);
+
+                while (q.Count > 0)
+                {
+                    var current = q.Dequeue();
+                    Console.Write(current + " ");
+                    if (Adj.ContainsKey(current))
+                    {
+                        // Перебираем непосещенные узлы
+                        foreach (int neighbour in Adj[current].Where(a => !visited.Contains(a)))
+                        {
+                            visited.Add(neighbour);
+                            q.Enqueue(neighbour);
+                        }
+                    }
+                }
+                Console.WriteLine();
+            }
+
+            public int BFSFindNode(int vertex, int lookingFor)
+            {
+                if (vertex == lookingFor)
+                {
+                    Console.WriteLine("Узел Найден!");
+                    Console.WriteLine("Заняло 0 шагов");
+                    return 0;
+                }
+                var visited = new HashSet<int>();
+                // Отмечаем узел, как посещенный
+                visited.Add(vertex);
+                // Очередь для BFS
+                var q = new Queue<int>();
+                // Добавляем узел в очередь
+                q.Enqueue(vertex);
+
+                int count = 0;
+
+                while (q.Count > 0)
+                {
+                    var current = q.Dequeue();
+                    Console.Write(current + " ");
+                    if (current == lookingFor)
+                    {
+                        Console.WriteLine("Узел найден!");
+                        Console.WriteLine("Заняло шагов: " + count);
+                        return visited.Count();
+                    }
+                    if (Adj.ContainsKey(current))
+                    {
+                        // Перебираем непосещенные узлы
+                        foreach (int neighbour in Adj[current].Where(a => !visited.Contains(a)))
+                        {
+                            visited.Add(neighbour);
+                            q.Enqueue(neighbour);
+                        }
+                    }
+                    count++;
+                }
+                Console.WriteLine("Значение не найдено!");
+                return count;
+            }
+
+            public void DFSiter(int vertex)
+            {
+                var visited = new HashSet<int>();
+                // Отмечаем узел, как посещенный
+                visited.Add(vertex);
+                // Stack для DFS
+                var s = new Stack<int>();
+                // Добавляем узел в stack
+                s.Push(vertex);
+
+                while (s.Count > 0)
+                {
+                    var current = s.Pop();
+                    Console.Write(current + " ");
+                    // Добавляем в посещенные
+                    if (!visited.Contains(current))
+                    {
+                        visited.Add(current);
+                    }
+                    if (Adj.ContainsKey(current))
+                    {
+                        // Перебираем непосещенные узлы
+                        foreach (int neighbour in Adj[current].Where(a => !visited.Contains(a)))
+                        {
+                            visited.Add(neighbour);
+                            s.Push(neighbour);
+                        }
+                    }
+                }
+                Console.WriteLine();
+            }
+
+            public void DFSRec(int vertex)
+            {
+                var visited = new HashSet<int>();
+                Traverse(vertex, visited);
+            }
+
+            private void Traverse(int v, HashSet<int> visited)
+            {
+                // Отмечаем узел, как посещенный
+                visited.Add(v);
+                Console.Write(v + " ");
+                if (Adj.ContainsKey(v))
+                {
+                    // Перебираем посещенные узлы
+                    foreach (int neighbour in Adj[v].Where(a => !visited.Contains(a)))
+                    {
+                        Traverse(neighbour, visited);
+                    }
+                }
+            }
+        }
+    }
+}
